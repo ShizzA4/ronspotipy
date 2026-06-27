@@ -12,6 +12,9 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: write
+
 env:
   MODULE_ID: ronspotipy
   MODULE_NAME: Ronspotipy
@@ -22,6 +25,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -31,7 +36,6 @@ jobs:
       - name: Download modded APK
         run: |
           curl -sL -o modded.apk "${{ inputs.apk_url }}"
-          echo "SPOTIFY_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
 
       - name: Build module
         run: |

@@ -18,15 +18,19 @@ mkdir -p "$OUT_DIR"
 # Build numeric version from current date
 VERCODE=$(date +%Y%m%d%H%M)
 
-# Extract APK version
-VER=$(python3 -c "
+# Extract APK version (prefer env var, fallback to APK manifest)
+if [ -n "$SPOTIFY_VERSION" ]; then
+  VER="$SPOTIFY_VERSION"
+else
+  VER=$(python3 -c "
 import zipfile, re
 with zipfile.ZipFile('$MODDED_APK') as z:
     with z.open('AndroidManifest.xml') as f:
         c = f.read()
-        m = re.search(rb'versionName[=:][\"\\']([\\d.]+)[\"\\']', c)
+        m = re.search(rb'versionName[=:][\"\\x27]([\d.]+)[\"\\x27]', c)
         print(m.group(1).decode() if m else 'unknown')
 ")
+fi
 
 MODULE_DIR="$OUT_DIR/$MODULE_ID"
 
