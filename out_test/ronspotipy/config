@@ -1,0 +1,3 @@
+PKG_NAME=com.spotify.music
+PKG_VER=9.9.99.999
+MODULE_ARCH=arm64

@@ -1,0 +1,7 @@
+id=ronspotipy
+name=Ronspotipy
+version=v9.9.99.999
+versionCode=202606280224
+author=ronspotipy
+description=Modded Spotify with premium unlocked
+updateJson=https://raw.githubusercontent.com/ShizzA4/ronspotipy/main/update.json
