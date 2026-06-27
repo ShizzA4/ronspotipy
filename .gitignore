@@ -1,0 +1,4 @@
+out/
+*.apk
+revanced-cli.jar
+patches.rvp

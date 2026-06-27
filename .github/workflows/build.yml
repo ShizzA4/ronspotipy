@@ -1,0 +1,74 @@
+name: Build
+
+on:
+  schedule:
+    - cron: 0 6 * * 1
+  workflow_dispatch:
+    inputs:
+      spotify_version:
+        description: Spotify version to patch (e.g. 9.1.60.1970)
+        required: false
+        type: string
+
+env:
+  MODULE_ID: ronspotipy
+  MODULE_NAME: Ronspotipy
+  MODULE_AUTHOR: ronspotipy
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python deps
+        run: pip install requests
+
+      - name: Get ReVanced CLI
+        run: |
+          gh release download -R ReVanced/revanced-cli -p '*.jar' -O revanced-cli.jar --clobber
+
+      - name: Get ReVanced Patches
+        run: |
+          gh release download -R ReVanced/revanced-patches -p '*.rvp' -O patches.rvp --clobber
+
+      - name: Get Spotify APK
+        run: |
+          python scripts/download-spotify.py "${{ inputs.spotify_version }}"
+
+      - name: Patch APK
+        run: |
+          SPOTIFY_APK=$(ls spotify-*.apk 2>/dev/null | head -1)
+          java -jar revanced-cli.jar patch \
+            -b patches.rvp \
+            -e microg-support \
+            -i premium \
+            -o modded.apk \
+            "$SPOTIFY_APK"
+
+      - name: Build module
+        run: |
+          bash scripts/build-module.sh
+
+      - name: Create release
+        run: |
+          MODULE_ZIP=$(ls out/*.zip | head -1)
+          VERSION=$(basename "$MODULE_ZIP" .zip | rev | cut -d- -f1 | rev)
+          TAG="v$VERSION"
+
+          gh release create "$TAG" \
+            "$MODULE_ZIP" \
+            --title "Ronspotipy v$VERSION" \
+            --notes "Auto-built from Spotify $VERSION + latest ReVanced patches."
