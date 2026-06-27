@@ -38,15 +38,19 @@ jobs:
 
       - name: Get ReVanced CLI
         run: |
-          gh release download -R ReVanced/revanced-cli -p '*.jar' -O revanced-cli.jar --clobber
+          curl -sL -o revanced-cli.jar $(curl -s https://api.github.com/repos/ReVanced/revanced-cli/releases/latest | python3 -c "import json,sys; print([a['browser_download_url'] for a in json.load(sys.stdin)['assets'] if a['name'].endswith('.jar')][0])")
 
       - name: Get ReVanced Patches
         run: |
-          gh release download -R ReVanced/revanced-patches -p '*.rvp' -O patches.rvp --clobber
+          curl -sL -o patches.rvp $(curl -s https://api.github.com/repos/ReVanced/revanced-patches/releases/latest | python3 -c "import json,sys; print([a['browser_download_url'] for a in json.load(sys.stdin)['assets'] if a['name'].endswith('.rvp')][0])")
 
       - name: Get Spotify APK
         run: |
           python scripts/download-spotify.py "${{ inputs.spotify_version }}"
+
+      - name: Check available patches
+        run: |
+          java -jar revanced-cli.jar list-patches -b patches.rvp 2>&1 | grep -i spotify || echo "NO_SPOTIFY_PATCHES"
 
       - name: Patch APK
         run: |
@@ -56,7 +60,7 @@ jobs:
             -e microg-support \
             -i premium \
             -o modded.apk \
-            "$SPOTIFY_APK"
+            "$SPOTIFY_APK" 2>&1 | tail -20
 
       - name: Build module
         run: |
