@@ -38,11 +38,33 @@ jobs:
 
       - name: Get ReVanced CLI
         run: |
-          curl -sL -o revanced-cli.jar $(curl -s https://api.github.com/repos/ReVanced/revanced-cli/releases/latest | python3 -c "import json,sys; print([a['browser_download_url'] for a in json.load(sys.stdin)['assets'] if a['name'].endswith('.jar')][0])")
+          curl -sL https://github.com/ReVanced/revanced-cli/releases/latest | python3 -c "
+import sys, re, urllib.request
+html = sys.stdin.read()
+match = re.search(r'/ReVanced/revanced-cli/releases/download/v[\d.]+/revanced-cli-[\d.]+-all\.jar', html)
+if match:
+    url = 'https://github.com' + match.group()
+    print(f'Downloading {url}')
+    urllib.request.urlretrieve(url, 'revanced-cli.jar')
+else:
+    print('ERROR: could not find CLI jar URL', file=sys.stderr)
+    sys.exit(1)
+"
 
       - name: Get ReVanced Patches
         run: |
-          curl -sL -o patches.rvp $(curl -s https://api.github.com/repos/ReVanced/revanced-patches/releases/latest | python3 -c "import json,sys; print([a['browser_download_url'] for a in json.load(sys.stdin)['assets'] if a['name'].endswith('.rvp')][0])")
+          curl -sL https://github.com/ReVanced/revanced-patches/releases/latest | python3 -c "
+import sys, re, urllib.request
+html = sys.stdin.read()
+match = re.search(r'/ReVanced/revanced-patches/releases/download/v[\d.]+/patches-[\d.]+\.rvp', html)
+if match:
+    url = 'https://github.com' + match.group()
+    print(f'Downloading {url}')
+    urllib.request.urlretrieve(url, 'patches.rvp')
+else:
+    print('ERROR: could not find patches RVP URL', file=sys.stderr)
+    sys.exit(1)
+"
 
       - name: Get Spotify APK
         run: |
